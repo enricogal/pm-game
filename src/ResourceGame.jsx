@@ -66,26 +66,90 @@ export default function ResourceGame({ onFinish, T, setT }) {
       setDrawnRisk(drawn);
       setShowJollyChoice(true);
     } else {
-      resolveTurn(selected, null);
+      resolveTurn(selected);
     }
   };
 
-  // 🃏 uso jolly
-  const useJolly = () => {
-    setJolly(jolly - 1);
-    resolveTurn(selected, null);
-    setShowJollyChoice(false);
-  };
-
-  // ❌ non uso jolly
+  // ❌ accetta imprevisto
   const acceptRisk = () => {
     const modified = selected.filter(r => r !== drawnRisk);
-    resolveTurn(modified, drawnRisk);
+    resolveTurn(modified);
     setShowJollyChoice(false);
   };
 
-  // 🧠 calcolo turno
-  const resolveTurn = (finalSel, risk) => {
+  // 🃏 usa jolly (NUOVA LOGICA CORRETTA)
+  const useJolly = () => {
+    const activity = activities[turn];
+    const correct = correctResources[activity];
+
+    let finalSel = [...selected]; // NON rimuoviamo la risorsa
+    let C = 0;
+    let Tgain = 0;
+    let newT = T;
+    let messages = [];
+    let isPerfect = true;
+
+    // gestione risorsa salvata dal jolly
+    if (correct.includes(drawnRisk)) {
+      // ✔️ necessaria → solo costo normale
+      C += 1;
+      messages.push(
+        `Hai usato il jolly su ${drawnRisk} → risorsa salvata (+1C)`
+      );
+    } else {
+      // ❌ non necessaria → solo costo base
+      C += 1;
+      messages.push(
+        `Hai usato il jolly su ${drawnRisk} (non necessaria) → +1C`
+      );
+      isPerfect = false;
+    }
+
+    // altre risorse
+    correct.forEach(r => {
+      if (r === drawnRisk) return;
+
+      if (finalSel.includes(r)) {
+        C += 1;
+      } else {
+        C += 1;
+        Tgain += 1;
+        newT += 1;
+        messages.push(`Hai dimenticato ${r} → +1C +1T`);
+        isPerfect = false;
+      }
+    });
+
+    // inutili
+    finalSel.forEach(r => {
+      if (!correct.includes(r) && r !== drawnRisk) {
+        C += 2;
+        messages.push(`Hai chiamato ${r} inutilmente → +2C`);
+        isPerfect = false;
+      }
+    });
+
+    if (isPerfect) {
+      messages.push("Ottima gestione del rischio con il jolly ✅");
+    }
+
+    setTurnC(C);
+    setTurnT(Tgain);
+
+    setTotalC(totalC + C);
+    setT(newT);
+
+    setCorrectForTurn(correct);
+    setFeedback(messages);
+    setFinalSelected(finalSel);
+
+    setJolly(jolly - 1);
+    setShowJollyChoice(false);
+    setShowResult(true);
+  };
+
+  // 🧠 turno normale (senza jolly)
+  const resolveTurn = (finalSel) => {
     const activity = activities[turn];
     const correct = correctResources[activity];
 
@@ -116,11 +180,12 @@ export default function ResourceGame({ onFinish, T, setT }) {
     });
 
     if (isPerfect) {
-      messages.push("Perfetto! Gestione impeccabile ✅");
+      messages.push("Perfetto! Tutto corretto ✅");
     }
 
     setTurnC(C);
     setTurnT(Tgain);
+
     setTotalC(totalC + C);
     setT(newT);
 
@@ -173,7 +238,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
         </>
       )}
 
-      {/* 🎴 scelta jolly */}
       {showJollyChoice && (
         <div>
           <h3>Imprevisto!</h3>
@@ -191,7 +255,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
         </div>
       )}
 
-      {/* 📊 risultato */}
       {showResult && (
         <div>
           {drawnRisk && <p>Imprevisto: {drawnRisk}</p>}
