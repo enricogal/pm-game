@@ -44,7 +44,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
 
   const [jolly, setJolly] = useState(2);
 
-  // 🎨 STILI BOTTONI
   const primaryButton = {
     marginTop: 20,
     padding: "12px 20px",
@@ -66,6 +65,8 @@ export default function ResourceGame({ onFinish, T, setT }) {
     fontWeight: "600",
     cursor: "pointer"
   };
+
+  const textBlack = { color: "#111" };
 
   const toggleResource = (res) => {
     if (selected.includes(res)) {
@@ -111,14 +112,10 @@ export default function ResourceGame({ onFinish, T, setT }) {
 
     if (correct.includes(drawnRisk)) {
       C += 1;
-      messages.push(
-        `Hai usato il jolly su ${drawnRisk} → risorsa salvata (+1C)`
-      );
+      messages.push(`Hai usato il jolly su ${drawnRisk} → risorsa salvata (+1C)`);
     } else {
       C += 1;
-      messages.push(
-        `Hai usato il jolly su ${drawnRisk} (non necessaria) → +1C`
-      );
+      messages.push(`Hai usato il jolly su ${drawnRisk} (non necessaria) → +1C`);
       isPerfect = false;
     }
 
@@ -224,17 +221,16 @@ export default function ResourceGame({ onFinish, T, setT }) {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 500,
-        margin: "40px auto",
-        padding: 20,
-        background: "white",
-        borderRadius: 16,
-        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-        textAlign: "center"
-      }}
-    >
+    <div style={{
+      maxWidth: 500,
+      margin: "40px auto",
+      padding: 20,
+      background: "white",
+      borderRadius: 16,
+      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+      textAlign: "center",
+      color: "#111"
+    }}>
       <h2 style={{ color: "#2563eb", marginBottom: 20 }}>
         Attività: {activities[turn]}
       </h2>
@@ -268,7 +264,7 @@ export default function ResourceGame({ onFinish, T, setT }) {
       )}
 
       {showJollyChoice && (
-        <div>
+        <div style={textBlack}>
           <h3>Imprevisto!</h3>
           <p>Mancanza risorsa: {drawnRisk}</p>
 
@@ -285,7 +281,7 @@ export default function ResourceGame({ onFinish, T, setT }) {
       )}
 
       {showResult && (
-        <div>
+        <div style={textBlack}>
           {drawnRisk && <p>Imprevisto: {drawnRisk}</p>}
 
           <p>Risorse effettive: {finalSelected.join(", ")}</p>
