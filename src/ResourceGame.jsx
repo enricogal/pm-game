@@ -1,61 +1,34 @@
 import { useState } from "react";
 
+const activities = [
+  "requisiti ops",
+  "sopralluogo gru",
+  "installazione telecamere",
+  "interconnessione con il TOS",
+  "test funzionali",
+  "test sul campo",
+  "go live"
+];
+
 const resources = ["OPS", "ENG", "IT", "Gru", "Fornitore"];
 
-const projects = {
-  ocr: {
-    activities: [
-      "requisiti ops",
-      "sopralluogo gru",
-      "installazione telecamere",
-      "interconnessione con il TOS",
-      "test funzionali",
-      "test sul campo",
-      "go live"
-    ],
-    correctResources: {
-      "requisiti ops": ["OPS"],
-      "sopralluogo gru": ["OPS","ENG","IT","Fornitore","Gru"],
-      "installazione telecamere": ["ENG","IT","Fornitore","Gru"],
-      "interconnessione con il TOS": ["IT","Fornitore","Gru"],
-      "test funzionali": ["ENG","IT","Gru","Fornitore"],
-      "test sul campo": ["OPS","Gru","Fornitore"],
-      "go live": ["OPS","ENG","IT","Fornitore","Gru"]
-    }
-  },
-
-  ferrovia: {
-    activities: [
-      "analisi flusso ferroviario",
-      "rilievo infrastruttura",
-      "installazione sensori",
-      "integrazione sistema controllo",
-      "configurazione logiche automazione",
-      "test operativi",
-      "avvio esercizio"
-    ],
-    correctResources: {
-      "analisi flusso ferroviario": ["OPS","ENG"],
-      "rilievo infrastruttura": ["OPS","ENG","Gru"],
-      "installazione sensori": ["ENG","Fornitore"],
-      "integrazione sistema controllo": ["IT","ENG","Fornitore"],
-      "configurazione logiche automazione": ["IT","ENG"],
-      "test operativi": ["OPS","ENG","Gru"],
-      "avvio esercizio": ["OPS","IT"]
-    }
-  }
+const correctResources = {
+  "requisiti ops": ["OPS"],
+  "sopralluogo gru": ["OPS","ENG","IT","Fornitore","Gru"],
+  "installazione telecamere": ["ENG","IT","Fornitore","Gru"],
+  "interconnessione con il TOS": ["IT","Fornitore","Gru"],
+  "test funzionali": ["ENG","IT","Gru","Fornitore"],
+  "test sul campo": ["OPS","Gru","Fornitore"],
+  "go live": ["OPS","ENG","IT","Fornitore","Gru"]
 };
 
 const riskDeck = ["OPS", "ENG", "IT", "Gru", "Fornitore"];
 
-export default function ResourceGame({ onFinish, T, setT, projectKey }) {
-  const project = projects[projectKey];
-  const activities = project.activities;
-  const correctResources = project.correctResources;
-
+export default function ResourceGame({ onFinish, T, setT }) {
   const [turn, setTurn] = useState(0);
   const [selected, setSelected] = useState([]);
   const [finalSelected, setFinalSelected] = useState([]);
+
   const [totalC, setTotalC] = useState(0);
 
   const [showResult, setShowResult] = useState(false);
@@ -68,6 +41,7 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
   const [turnT, setTurnT] = useState(0);
 
   const [drawnRisk, setDrawnRisk] = useState(null);
+
   const [jolly, setJolly] = useState(2);
 
   const primaryButton = {
@@ -92,6 +66,8 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
     cursor: "pointer"
   };
 
+  const textBlack = { color: "#111" };
+
   const toggleResource = (res) => {
     if (selected.includes(res)) {
       setSelected(selected.filter(r => r !== res));
@@ -109,6 +85,7 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
     ) {
       const drawn =
         riskDeck[Math.floor(Math.random() * riskDeck.length)];
+
       setDrawnRisk(drawn);
       setShowJollyChoice(true);
     } else {
@@ -123,20 +100,23 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
   };
 
   const useJolly = () => {
-    const correct = correctResources[activities[turn]];
+    const activity = activities[turn];
+    const correct = correctResources[activity];
 
     let finalSel = [...selected];
     let C = 0;
     let Tgain = 0;
     let newT = T;
     let messages = [];
+    let isPerfect = true;
 
     if (correct.includes(drawnRisk)) {
       C += 1;
-      messages.push(`Jolly usato su ${drawnRisk} → salvata (+1C)`);
+      messages.push(`Hai usato il jolly su ${drawnRisk} → risorsa salvata (+1C)`);
     } else {
       C += 1;
-      messages.push(`Jolly usato su ${drawnRisk} → non necessaria (+1C)`);
+      messages.push(`Hai usato il jolly su ${drawnRisk} (non necessaria) → +1C`);
+      isPerfect = false;
     }
 
     correct.forEach(r => {
@@ -148,28 +128,46 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
         C += 1;
         Tgain += 1;
         newT += 1;
-        messages.push(`Manca ${r} → +1C +1T`);
+        messages.push(`Hai dimenticato ${r} → +1C +1T`);
+        isPerfect = false;
       }
     });
 
     finalSel.forEach(r => {
       if (!correct.includes(r) && r !== drawnRisk) {
         C += 2;
-        messages.push(`${r} inutile → +2C`);
+        messages.push(`Hai chiamato ${r} inutilmente → +2C`);
+        isPerfect = false;
       }
     });
 
-    updateState(C, Tgain, newT, finalSel, messages);
+    if (isPerfect) {
+      messages.push("Ottima gestione del rischio con il jolly ✅");
+    }
+
+    setTurnC(C);
+    setTurnT(Tgain);
+    setTotalC(totalC + C);
+    setT(newT);
+
+    setCorrectForTurn(correct);
+    setFeedback(messages);
+    setFinalSelected(finalSel);
+
     setJolly(jolly - 1);
+    setShowJollyChoice(false);
+    setShowResult(true);
   };
 
   const resolveTurn = (finalSel) => {
-    const correct = correctResources[activities[turn]];
+    const activity = activities[turn];
+    const correct = correctResources[activity];
 
     let C = 0;
     let Tgain = 0;
     let newT = T;
     let messages = [];
+    let isPerfect = true;
 
     correct.forEach(r => {
       if (finalSel.includes(r)) {
@@ -178,29 +176,32 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
         C += 1;
         Tgain += 1;
         newT += 1;
-        messages.push(`Manca ${r} → +1C +1T`);
+        messages.push(`Hai perso ${r} → +1C +1T`);
+        isPerfect = false;
       }
     });
 
     finalSel.forEach(r => {
       if (!correct.includes(r)) {
         C += 2;
-        messages.push(`${r} inutile → +2C`);
+        messages.push(`Hai chiamato ${r} inutilmente → +2C`);
+        isPerfect = false;
       }
     });
 
-    updateState(C, Tgain, newT, finalSel, messages);
-  };
+    if (isPerfect) {
+      messages.push("Perfetto! Tutto corretto ✅");
+    }
 
-  const updateState = (C, Tgain, newT, finalSel, messages) => {
     setTurnC(C);
     setTurnT(Tgain);
     setTotalC(totalC + C);
     setT(newT);
-    setCorrectForTurn(correctResources[activities[turn]]);
+
+    setCorrectForTurn(correct);
     setFeedback(messages);
     setFinalSelected(finalSel);
-    setShowJollyChoice(false);
+
     setShowResult(true);
   };
 
@@ -230,37 +231,85 @@ export default function ResourceGame({ onFinish, T, setT, projectKey }) {
       textAlign: "center",
       color: "#111"
     }}>
-      <h2 style={{ color: "#2563eb" }}>
-        {activities[turn]}
+      <h2 style={{ color: "#2563eb", marginBottom: 20 }}>
+        Attività: {activities[turn]}
       </h2>
 
       {!showResult && !showJollyChoice && (
         <>
-          {resources.map(r => (
-            <button key={r} onClick={() => toggleResource(r)}>
-              {r}
-            </button>
-          ))}
-          <button onClick={handleConfirm} style={primaryButton}>Conferma</button>
+          <div>
+            {resources.map(r => (
+              <button
+                key={r}
+                onClick={() => toggleResource(r)}
+                style={{
+                  margin: 6,
+                  padding: 12,
+                  borderRadius: 12,
+                  border: "none",
+                  background: selected.includes(r) ? "#2563eb" : "#e5e7eb",
+                  color: selected.includes(r) ? "white" : "#111",
+                  fontWeight: "600"
+                }}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={handleConfirm} style={primaryButton}>
+            Conferma
+          </button>
         </>
       )}
 
       {showJollyChoice && (
-        <>
-          <p>Imprevisto: manca {drawnRisk}</p>
-          {jolly > 0 && <button onClick={useJolly} style={primaryButton}>Usa Jolly</button>}
-          <button onClick={acceptRisk} style={secondaryButton}>Accetta</button>
-        </>
+        <div style={textBlack}>
+          <h3>Imprevisto!</h3>
+          <p>Mancanza risorsa: {drawnRisk}</p>
+
+          {jolly > 0 && (
+            <button onClick={useJolly} style={primaryButton}>
+              Usa Jolly ({jolly})
+            </button>
+          )}
+
+          <button onClick={acceptRisk} style={secondaryButton}>
+            Accetta imprevisto
+          </button>
+        </div>
       )}
 
       {showResult && (
-        <>
-          <p>Risorse: {finalSelected.join(", ")}</p>
-          <p>Corrette: {correctForTurn.join(", ")}</p>
-          <p>+{turnC}C +{turnT}T</p>
-          <button onClick={nextTurn} style={primaryButton}>Continua</button>
-        </>
+        <div style={textBlack}>
+          {drawnRisk && <p>Imprevisto: {drawnRisk}</p>}
+
+          <p>Risorse effettive: {finalSelected.join(", ")}</p>
+
+          <h4>Soluzione corretta:</h4>
+          <p>{correctForTurn.join(", ")}</p>
+
+          <h4>Feedback:</h4>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {feedback.map((f, i) => (
+              <li key={i}>{f}</li>
+            ))}
+          </ul>
+
+          <h4>Risultato turno:</h4>
+          <p>+{turnC} C</p>
+          <p>+{turnT} T</p>
+
+          <button onClick={nextTurn} style={primaryButton}>
+            Continua
+          </button>
+        </div>
       )}
+
+      <p>Turno {turn + 1} / 7</p>
+      <p>Costi (C): {totalC}</p>
+      <p>Tempo (T): {T}</p>
+      <p>🃏 Jolly: {jolly}</p>
     </div>
   );
 }
