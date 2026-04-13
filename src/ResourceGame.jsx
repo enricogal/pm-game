@@ -44,6 +44,29 @@ export default function ResourceGame({ onFinish, T, setT }) {
 
   const [jolly, setJolly] = useState(2);
 
+  // 🎨 STILI BOTTONI
+  const primaryButton = {
+    marginTop: 20,
+    padding: "12px 20px",
+    borderRadius: 12,
+    border: "none",
+    background: "#2563eb",
+    color: "white",
+    fontWeight: "600",
+    cursor: "pointer"
+  };
+
+  const secondaryButton = {
+    marginTop: 10,
+    padding: "12px 20px",
+    borderRadius: 12,
+    border: "none",
+    background: "#e5e7eb",
+    color: "#111",
+    fontWeight: "600",
+    cursor: "pointer"
+  };
+
   const toggleResource = (res) => {
     if (selected.includes(res)) {
       setSelected(selected.filter(r => r !== res));
@@ -52,7 +75,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
     }
   };
 
-  // 🎴 pesca imprevisto
   const handleConfirm = () => {
     const activity = activities[turn];
 
@@ -70,34 +92,29 @@ export default function ResourceGame({ onFinish, T, setT }) {
     }
   };
 
-  // ❌ accetta imprevisto
   const acceptRisk = () => {
     const modified = selected.filter(r => r !== drawnRisk);
     resolveTurn(modified);
     setShowJollyChoice(false);
   };
 
-  // 🃏 usa jolly (NUOVA LOGICA CORRETTA)
   const useJolly = () => {
     const activity = activities[turn];
     const correct = correctResources[activity];
 
-    let finalSel = [...selected]; // NON rimuoviamo la risorsa
+    let finalSel = [...selected];
     let C = 0;
     let Tgain = 0;
     let newT = T;
     let messages = [];
     let isPerfect = true;
 
-    // gestione risorsa salvata dal jolly
     if (correct.includes(drawnRisk)) {
-      // ✔️ necessaria → solo costo normale
       C += 1;
       messages.push(
         `Hai usato il jolly su ${drawnRisk} → risorsa salvata (+1C)`
       );
     } else {
-      // ❌ non necessaria → solo costo base
       C += 1;
       messages.push(
         `Hai usato il jolly su ${drawnRisk} (non necessaria) → +1C`
@@ -105,7 +122,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
       isPerfect = false;
     }
 
-    // altre risorse
     correct.forEach(r => {
       if (r === drawnRisk) return;
 
@@ -120,7 +136,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
       }
     });
 
-    // inutili
     finalSel.forEach(r => {
       if (!correct.includes(r) && r !== drawnRisk) {
         C += 2;
@@ -135,7 +150,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
 
     setTurnC(C);
     setTurnT(Tgain);
-
     setTotalC(totalC + C);
     setT(newT);
 
@@ -148,7 +162,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
     setShowResult(true);
   };
 
-  // 🧠 turno normale (senza jolly)
   const resolveTurn = (finalSel) => {
     const activity = activities[turn];
     const correct = correctResources[activity];
@@ -185,7 +198,6 @@ export default function ResourceGame({ onFinish, T, setT }) {
 
     setTurnC(C);
     setTurnT(Tgain);
-
     setTotalC(totalC + C);
     setT(newT);
 
@@ -212,56 +224,46 @@ export default function ResourceGame({ onFinish, T, setT }) {
   };
 
   return (
-    <div style={{
-  maxWidth: 500,
-  margin: "40px auto",
-  padding: 20,
-  background: "white",
-  borderRadius: 16,
-  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-  textAlign: "center"
-}}>
-      <h2>Attività: {activities[turn]}</h2>
+    <div
+      style={{
+        maxWidth: 500,
+        margin: "40px auto",
+        padding: 20,
+        background: "white",
+        borderRadius: 16,
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        textAlign: "center"
+      }}
+    >
+      <h2 style={{ color: "#2563eb", marginBottom: 20 }}>
+        Attività: {activities[turn]}
+      </h2>
 
       {!showResult && !showJollyChoice && (
         <>
           <div>
             {resources.map(r => (
               <button
-  key={r}
-  onClick={() => toggleResource(r)}
-  style={{
-    margin: 6,
-    padding: 12,
-    borderRadius: 12,
-    border: "none",
-    background: selected.includes(r) ? "#2563eb" : "#e5e7eb",
-    color: selected.includes(r) ? "white" : "#111",
-    fontWeight: "600",
-    cursor: "pointer",
-    transition: "all 0.2s ease"
-  }}
->
-  {r}
-</button>
+                key={r}
+                onClick={() => toggleResource(r)}
+                style={{
+                  margin: 6,
+                  padding: 12,
+                  borderRadius: 12,
+                  border: "none",
+                  background: selected.includes(r) ? "#2563eb" : "#e5e7eb",
+                  color: selected.includes(r) ? "white" : "#111",
+                  fontWeight: "600"
+                }}
+              >
+                {r}
+              </button>
             ))}
           </div>
 
-          <button
-  onClick={handleConfirm}
-  style={{
-    marginTop: 20,
-    padding: "12px 20px",
-    borderRadius: 12,
-    border: "none",
-    background: "#16a34a",
-    color: "white",
-    fontWeight: "600",
-    cursor: "pointer"
-  }}
->
-  Conferma
-</button>
+          <button onClick={handleConfirm} style={primaryButton}>
+            Conferma
+          </button>
         </>
       )}
 
@@ -271,12 +273,12 @@ export default function ResourceGame({ onFinish, T, setT }) {
           <p>Mancanza risorsa: {drawnRisk}</p>
 
           {jolly > 0 && (
-            <button onClick={useJolly}>
-              Usa Jolly ({jolly} rimasti)
+            <button onClick={useJolly} style={primaryButton}>
+              Usa Jolly ({jolly})
             </button>
           )}
 
-          <button onClick={acceptRisk}>
+          <button onClick={acceptRisk} style={secondaryButton}>
             Accetta imprevisto
           </button>
         </div>
@@ -292,7 +294,7 @@ export default function ResourceGame({ onFinish, T, setT }) {
           <p>{correctForTurn.join(", ")}</p>
 
           <h4>Feedback:</h4>
-          <ul style={{ listStyle: "none" }}>
+          <ul style={{ listStyle: "none", padding: 0 }}>
             {feedback.map((f, i) => (
               <li key={i}>{f}</li>
             ))}
@@ -302,14 +304,16 @@ export default function ResourceGame({ onFinish, T, setT }) {
           <p>+{turnC} C</p>
           <p>+{turnT} T</p>
 
-          <button onClick={nextTurn}>Continua</button>
+          <button onClick={nextTurn} style={primaryButton}>
+            Continua
+          </button>
         </div>
       )}
 
       <p>Turno {turn + 1} / 7</p>
       <p>Costi (C): {totalC}</p>
       <p>Tempo (T): {T}</p>
-      <p>Jolly: {jolly}</p>
+      <p>🃏 Jolly: {jolly}</p>
     </div>
   );
 }
