@@ -212,7 +212,15 @@ export default function ResourceGame({ onFinish, T, setT }) {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: 50 }}>
+    <div style={{
+  maxWidth: 500,
+  margin: "40px auto",
+  padding: 20,
+  background: "white",
+  borderRadius: 16,
+  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+  textAlign: "center"
+}}>
       <h2>Attività: {activities[turn]}</h2>
 
       {!showResult && !showJollyChoice && (
@@ -220,21 +228,40 @@ export default function ResourceGame({ onFinish, T, setT }) {
           <div>
             {resources.map(r => (
               <button
-                key={r}
-                onClick={() => toggleResource(r)}
-                style={{
-                  margin: 5,
-                  padding: 10,
-                  background: selected.includes(r) ? "#2E7D32" : "#ddd",
-                  color: selected.includes(r) ? "white" : "black"
-                }}
-              >
-                {r}
-              </button>
+  key={r}
+  onClick={() => toggleResource(r)}
+  style={{
+    margin: 6,
+    padding: 12,
+    borderRadius: 12,
+    border: "none",
+    background: selected.includes(r) ? "#2563eb" : "#e5e7eb",
+    color: selected.includes(r) ? "white" : "#111",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+  }}
+>
+  {r}
+</button>
             ))}
           </div>
 
-          <button onClick={handleConfirm}>Conferma</button>
+          <button
+  onClick={handleConfirm}
+  style={{
+    marginTop: 20,
+    padding: "12px 20px",
+    borderRadius: 12,
+    border: "none",
+    background: "#16a34a",
+    color: "white",
+    fontWeight: "600",
+    cursor: "pointer"
+  }}
+>
+  Conferma
+</button>
         </>
       )}
 
