@@ -12,7 +12,7 @@ function App() {
   if (screen === "home") {
     return (
       <div style={{ textAlign: "center", marginTop: 50 }}>
-        <h1>PM Simulator</h1>
+        <h1>OCR Project: Mission Go-Live</h1>
         <button onClick={() => setScreen("order")}>
           Inizia
         </button>
